@@ -8,19 +8,11 @@ defmodule AggieTest do
     assert Aggie.ping!.status_code == 200
   end
 
-  test "pages" do
-    out = Aggie.page
-    assert out[:scroll_id] != ""
-    assert out[:logs] |> Enum.count == 50
+  test "raw_logs" do
+    assert Aggie.raw_logs |> Enum.count > 1000
   end
 
-  test "scrolling" do
-    first = Aggie.page
-    second = Aggie.page(first[:scroll_id])
-    assert first[:logs] != second[:logs]
-  end
-
-  test "hydration" do
-    assert Enum.count(Aggie.page[:logs]) == 50
+  test "sifted_logs" do
+    assert Aggie.sifted_logs |> Enum.count > 1000
   end
 end

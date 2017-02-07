@@ -2,14 +2,14 @@ require IEx
 
 defmodule Aggie do
   @ip "146.20.110.235:9200"
-  @range "now-15m"
-  @chunks 50
+  @range "now-1m"
+  @chunks 1000
   @timeout "1m"
 
   alias Aggie.Sifter
 
   @moduledoc """
-  Documentation for Aggie.
+  Aggie is the RPC log aggregator
   """
 
   @doc """
@@ -20,29 +20,42 @@ defmodule Aggie do
   end
 
   @doc """
+  Sift through the logs for valuable info
+  """
+  def sifted_logs do
+    raw_logs() |> Sifter.sift!([])
+  end
+
+  @doc """
   Grab the latest logs from ElasticSearch
   """
-  def latest_logs do
-    #TODO:  We must loop over this until hits == []
+  def raw_logs do
+    page([])
   end
 
-  def page(scroll_id \\ nil) do
-    #TODO:  Wrap this in streams
 
-    base_url = "#{@ip}/_search?scroll=#{@timeout}"
+  defp page(acc) do
+    url  = "#{@ip}/_search?scroll=#{@timeout}"
+    body = %{size: @chunks, query: %{range: %{"@timestamp": %{gt: @range}}}}
+            |> Poison.encode!
 
-    url = case scroll_id do
-      nil -> base_url
-      _   -> "#{base_url}&scroll_id=#{scroll_id}"
-    end
-
-    body        = %{size: @chunks, query: %{range: %{"@timestamp": %{gt: @range}}}}
-    {:ok, resp} = HTTPoison.request(:get, url, body |> Poison.encode!)
+    {:ok, resp} = HTTPoison.request(:get, url, body)
     {:ok, json} = Poison.decode(resp.body)
-    scroll_id   = json["_scroll_id"]
-    logs        = json["hits"]["hits"] |> Sifter.sift!([])
 
-    %{scroll_id: scroll_id, logs: logs}
+    acc = acc ++ json["hits"]["hits"]
+
+    page(acc, json["_scroll_id"])
   end
 
+  defp page(acc, scroll_id) do
+    url         = "#{@ip}/_search/scroll?scroll=#{@timeout}&scroll_id=#{scroll_id}"
+    resp        = HTTPoison.get!(url)
+    {:ok, json} = Poison.decode(resp.body)
+    logs        = json["hits"]["hits"]
+
+    case logs do
+      [] -> acc
+      _  -> page(acc ++ logs, json["_scroll_id"])
+    end
+  end
 end
