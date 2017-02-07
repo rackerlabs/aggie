@@ -8,11 +8,9 @@ defmodule AggieTest do
     assert Aggie.ping!.status_code == 200
   end
 
-  test "raw_logs" do
-    assert Aggie.raw_logs |> Enum.count > 1000
-  end
-
-  test "sifted_logs" do
-    assert Aggie.sifted_logs |> Enum.count > 1000
+  test "logs" do
+    raw = Aggie.raw_logs |> Enum.count
+    sifted = Aggie.sifted_logs |> Enum.count
+    assert raw == sifted # TODO :)
   end
 end

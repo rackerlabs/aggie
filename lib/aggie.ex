@@ -2,11 +2,11 @@ require IEx
 
 defmodule Aggie do
   @ip "146.20.110.235:9200"
-  @range "now-1m"
-  @chunks 1000
+  @range "now-15m"
+  @chunks 50
   @timeout "1m"
 
-  alias Aggie.Sifter
+  alias Aggie.Judge
 
   @moduledoc """
   Aggie is the RPC log aggregator
@@ -20,14 +20,18 @@ defmodule Aggie do
   end
 
   @doc """
-  Sift through the logs for valuable info
+  Grabs the latest valuable logs from ElasticSearch
   """
-  def sifted_logs do
-    raw_logs() |> Sifter.sift!([])
+  def logs do
+    Enum.reduce raw_logs(), [], fn(log, acc) ->
+      case Judge.verdict?(log) do
+        true -> acc ++ [log]
+        _    -> acc
+      end
+    end
   end
 
   @doc """
-  Grab the latest logs from ElasticSearch
   """
   def raw_logs do
     page([])
@@ -35,11 +39,8 @@ defmodule Aggie do
 
 
   defp page(acc) do
-    url  = "#{@ip}/_search?scroll=#{@timeout}"
-    body = %{size: @chunks, query: %{range: %{"@timestamp": %{gt: @range}}}}
-            |> Poison.encode!
-
-    {:ok, resp} = HTTPoison.request(:get, url, body)
+    url         = "#{@ip}/_search?scroll=#{@timeout}"
+    {:ok, resp} = HTTPoison.request(:get, url, request_body())
     {:ok, json} = Poison.decode(resp.body)
 
     acc = acc ++ json["hits"]["hits"]
@@ -57,5 +58,27 @@ defmodule Aggie do
       [] -> acc
       _  -> page(acc ++ logs, json["_scroll_id"])
     end
+  end
+
+  defp request_body do
+    %{
+      size: @chunks,
+      query: %{
+        bool: %{
+          must_not: [
+            %{term: %{ "loglevel": "debug" } },
+            %{term: %{ "loglevel": "info" } }
+          ],
+          must: %{
+            range: %{
+              "@timestamp": %{
+                gte: @range
+              }
+            }
+          }
+        }
+      }
+    }
+    |> Poison.encode!
   end
 end
