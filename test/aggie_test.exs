@@ -9,8 +9,6 @@ defmodule AggieTest do
   end
 
   test "logs" do
-    raw = Aggie.raw_logs |> Enum.count
-    sifted = Aggie.sifted_logs |> Enum.count
-    assert raw == sifted # TODO :)
+    assert Aggie.logs |> Enum.count > 0
   end
 end

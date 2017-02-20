@@ -1,16 +1,16 @@
 require IEx
 
 defmodule Aggie do
-  @ip "146.20.110.235:9200"
-  @range "now-15m"
-  @chunks 50
-  @timeout "1m"
-
-  alias Aggie.Judge
-
   @moduledoc """
   Aggie is the RPC log aggregator
   """
+
+  @ip "146.20.110.235:9200"
+  @range "now-15m"
+  @chunks 100
+  @timeout "1m"
+
+  alias Aggie.Judge
 
   @doc """
   Ping the Elasticsearch server
@@ -23,18 +23,12 @@ defmodule Aggie do
   Grabs the latest valuable logs from ElasticSearch
   """
   def logs do
-    Enum.reduce raw_logs(), [], fn(log, acc) ->
+    Enum.reduce page([]), [], fn(log, acc) ->
       case Judge.verdict?(log) do
         true -> acc ++ [log]
         _    -> acc
       end
     end
-  end
-
-  @doc """
-  """
-  def raw_logs do
-    page([])
   end
 
 
