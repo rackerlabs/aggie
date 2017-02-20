@@ -11,4 +11,8 @@ defmodule AggieTest do
   test "logs" do
     assert Aggie.logs |> Enum.count > 0
   end
+
+  test "tenant_id" do
+    assert Aggie.tenant_id() == 930035
+  end
 end

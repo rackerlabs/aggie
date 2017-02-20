@@ -7,6 +7,7 @@ defmodule Aggie.Mixfile do
     elixir: "~> 1.4",
     build_embedded: Mix.env == :prod,
     start_permanent: Mix.env == :prod,
+    escript: [main_module: Commandline.CLI],
     deps: deps()]
   end
 
@@ -29,13 +30,13 @@ defmodule Aggie.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:timex, "~> 3.0"},
       {:ex_doc, "~> 0.13", only: :dev},
-      {:distillery, "~> 1.0"},
+      {:distillery, "~> 1.1"},
       {:uuid, "~> 1.1"},
       {:poison, "~> 3.0"},
       {:httpoison, "~> 0.10.0"},
       {:apex, "~> 0.7.0"},
+      {:yaml_elixir, "~> 1.3.0"},
       {:credo, "~> 0.5", only: [:dev, :test]}
     ]
   end

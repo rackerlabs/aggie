@@ -15,7 +15,7 @@ defmodule Aggie.Judge do
 
   defp service_judge(elk_log) do
     cond do
-      Cinder.is_cinder?(elk_log) -> Cinder.judge!(elk_log)
+      # Cinder.is_cinder?(elk_log) -> Cinder.judge!(elk_log)
       # Glance.is_glance?(elk_log) -> Glance.judge!(elk_log)
       # Keystone.is_keystone?(elk_log) -> Keystone.judge!(elk_log)
       # Neutron.is_neutron?(elk_log) -> Neutron.judge!(elk_log)

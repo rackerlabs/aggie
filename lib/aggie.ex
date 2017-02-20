@@ -6,8 +6,13 @@ defmodule Aggie do
   """
 
   @ip "146.20.110.235:9200"
-  @range "now-15m"
-  @chunks 100
+  # @ip "0.0.0.0:9200"
+  @primary_config "/etc/openstack_deploy/user_rpco_variables_overrides.yml"
+  @secondary_config "/etc/rpc_deploy/user_variables.yml"
+  @tertiary_config File.cwd! |> Path.join("sample.yml")
+
+  @range "now-1m"
+  @chunks 1000
   @timeout "1m"
 
   alias Aggie.Judge
@@ -29,6 +34,18 @@ defmodule Aggie do
         _    -> acc
       end
     end
+  end
+
+  def tenant_id do
+    path = cond do
+      File.exists?(@primary_config) -> @primary_config
+      File.exists?(@secondary_config) -> @secondary_config
+      File.exists?(@tertiary_config) -> @tertiary_config
+      true -> "raise some error"
+    end
+
+    config = YamlElixir.read_from_file(path)
+    config["maas_tenant_id"]
   end
 
 
