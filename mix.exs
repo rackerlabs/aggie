@@ -16,7 +16,7 @@ defmodule Aggie.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
-    [extra_applications: [:logger, :httpoison]]
+    [extra_applications: [:logger, :httpoison, :timex]]
   end
 
   # Dependencies can be Hex packages:
@@ -30,14 +30,16 @@ defmodule Aggie.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:ex_doc, "~> 0.13", only: :dev},
-      {:distillery, "~> 1.1"},
-      {:uuid, "~> 1.1"},
-      {:poison, "~> 3.0"},
-      {:httpoison, "~> 0.10.0"},
       {:apex, "~> 0.7.0"},
-      {:yaml_elixir, "~> 1.3.0"},
-      {:credo, "~> 0.5", only: [:dev, :test]}
+      {:credo, "~> 0.5", only: [:dev, :test]},
+      {:distillery, "~> 1.1"},
+      {:ex_doc, "~> 0.13", only: :dev},
+      {:httpoison, "~> 0.10.0"},
+      {:poison, "~> 3.0"},
+      {:timex, "~> 3.0"},
+      {:tzdata, "== 0.1.8", override: true},
+      {:uuid, "~> 1.1"},
+      {:yaml_elixir, "~> 1.3.0"}
     ]
   end
 end

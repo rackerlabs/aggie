@@ -20,4 +20,8 @@ defmodule AggieTest do
     log = Aggie.logs |> Enum.to_list |> List.first
     assert log["_source"]["beat"]["hostname"] == "930035.rpc-openstack"
   end
+
+  test "forward!" do
+    Aggie.logs |> Aggie.forward!
+  end
 end
