@@ -9,9 +9,9 @@ defmodule Aggie do
   # @ip "0.0.0.0:9200"
   @primary_config "/etc/openstack_deploy/user_rpco_variables_overrides.yml"
   @secondary_config "/etc/rpc_deploy/user_variables.yml"
-  @tertiary_config File.cwd! |> Path.join("sample.yml")
+  @tertiary_config File.cwd! |> Path.join("test/sample.yml")
 
-  @range "now-1m"
+  @range "now-10m"
   @chunks 1000
   @timeout "1m"
 
@@ -53,22 +53,44 @@ defmodule Aggie do
     url         = "#{@ip}/_search?scroll=#{@timeout}"
     {:ok, resp} = HTTPoison.request(:get, url, request_body())
     {:ok, json} = Poison.decode(resp.body)
+    raw_logs    = json["hits"]["hits"]
 
-    acc = acc ++ json["hits"]["hits"]
-
-    page(acc, json["_scroll_id"])
+    case raw_logs do
+      [] -> []
+      nil -> []
+      _  ->
+        acc = acc ++ update_hostname(raw_logs)
+        page(acc, json["_scroll_id"])
+    end
   end
 
   defp page(acc, scroll_id) do
     url         = "#{@ip}/_search/scroll?scroll=#{@timeout}&scroll_id=#{scroll_id}"
     resp        = HTTPoison.get!(url)
     {:ok, json} = Poison.decode(resp.body)
-    logs        = json["hits"]["hits"]
+    raw_logs    = json["hits"]["hits"]
 
-    case logs do
+    case raw_logs do
       [] -> acc
-      _  -> page(acc ++ logs, json["_scroll_id"])
+      nil -> acc
+      _  ->
+        logs = update_hostname(raw_logs)
+        page(acc ++ logs, json["_scroll_id"])
     end
+  end
+
+  defp update_hostname(logs) do
+    new_hostname = hostname(logs |> Enum.to_list |> List.first)
+
+    Enum.map(logs, fn(l) ->
+      put_in(l, ["_source", "beat", "hostname"], new_hostname)
+    end)
+  end
+
+  defp hostname(log) do
+    tenant_id = tenant_id()
+    hostname  = log["_source"]["beat"]["hostname"]
+    "#{tenant_id}.#{hostname}"
   end
 
   defp request_body do
