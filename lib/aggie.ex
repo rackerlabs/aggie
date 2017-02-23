@@ -7,14 +7,16 @@ defmodule Aggie do
 
   alias Aggie.Judge
 
-  @ip "172.29.238.40:9200"
+  # @ip "172.29.238.40:9200" # Darby
+  @ip "172.29.238.99:9200" # Antony
+
   @central_elk "162.242.253.228:9200"
 
   @primary_config "/etc/openstack_deploy/user_rpco_variables_overrides.yml"
   @secondary_config "/etc/rpc_deploy/user_variables.yml"
   @tertiary_config File.cwd! |> Path.join("test/sample.yml")
 
-  @range "now-10days"
+  @range "now-10m"
   @chunks 1000
   @timeout "1m"
 
@@ -61,10 +63,7 @@ defmodule Aggie do
           [] -> []
           nil -> []
           _  ->
-            count = raw_logs |> Enum.count
-            IO.puts "Found #{count} raw logs"
-
-            acc = acc ++ update_hostname(raw_logs)
+            acc = acc ++ (raw_logs |> update_hostname)
             page(acc, json["_scroll_id"])
         end
     end
@@ -80,17 +79,23 @@ defmodule Aggie do
       [] -> acc
       nil -> acc
       _  ->
-        logs = update_hostname(raw_logs)
-        page(acc ++ logs, json["_scroll_id"])
+        count = raw_logs |> Enum.count
+
+        # For some reason in ES 2.4.1 we receive
+        # the last ten results repeatedly. Let's
+        # use that as a stop condition.
+        case count do
+          10 -> acc
+          _ ->
+            logs = raw_logs |> update_hostname
+            page(acc ++ logs, json["_scroll_id"])
+        end
     end
   end
 
   defp base_url do
     {:ok, date} = Timex.format(Timex.today, "%Y.%m.%d", :strftime)
     name = "logstash-#{date}"
-    
-    IO.puts name
-
     "#{@ip}/#{name}/_search?scroll=#{@timeout}"
   end
 
@@ -123,6 +128,7 @@ defmodule Aggie do
   defp page_request_body do
     %{
       size: @chunks,
+      sort: ["_doc"],
       query: %{
         bool: %{
           must_not: [
