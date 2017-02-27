@@ -1,6 +1,6 @@
 require IEx
 
-defmodule Aggie do
+defmodule Aggie.Elk do
   @moduledoc """
   Aggie is the RPC log aggregator
   """
@@ -9,8 +9,6 @@ defmodule Aggie do
 
   # @ip "172.29.238.40:9200" # Darby
   @ip "172.29.238.99:9200" # Antony
-
-  @central_elk "162.242.253.228:9200"
 
   @primary_config "/etc/openstack_deploy/user_rpco_variables_overrides.yml"
   @secondary_config "/etc/rpc_deploy/user_variables.yml"
@@ -24,21 +22,7 @@ defmodule Aggie do
   Forwards the latest valuable logs from local ELK to Central ELK
   """
   def ship! do
-    logs  = logs()
-    count = logs |> Enum.count
-
-    IO.puts "Found #{count} valuable logs"
-
-    Enum.each(logs, fn(l) ->
-      {:ok, body} = Poison.encode(l["_source"])
-      headers     = [{"Content-Type", "application/json"}]
-      url         = "#{@central_elk}/#{l["_index"]}/log"
-
-      case HTTPoison.post(url, body, headers) do
-        {:ok, _} -> IO.puts(".")
-        _ -> IO.puts("uh oh")
-      end
-    end)
+    Aggie.Shipper.ship!(logs())
   end
 
 

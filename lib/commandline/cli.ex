@@ -4,7 +4,7 @@ defmodule Commandline.CLI do
 
     case Keyword.has_key?(opts, :syslog) do
       true  -> Aggie.SyslogServer.listen(7777)
-      false -> Aggie.ship!
+      false -> Aggie.Elk.ship!
     end
   end
 end
