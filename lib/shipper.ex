@@ -24,20 +24,27 @@ defmodule Aggie.Shipper do
   end
 
   defp ship_syslog_log!(log) do
-    {:ok, body} = Poison.encode(log)
-    date        = Timex.format!(Timex.now, "{YYYY}.{0M}.{D}")
-    index       = "syslog-#{date}"
-    url         = "#{@central_elk}/#{index}/log"
+    now   = Timex.now
+    time  = now |> DateTime.to_iso8601
+    date  = Timex.format!(now, "{YYYY}.{0M}.{D}")
+    index = "syslog-#{date}"
+    url   = "#{@central_elk}/#{index}/log"
+    data  = %{
+      message: log,
+      _timestamp: time
+    }
 
-    post!(url, body)
+    post!(url, data)
   end
 
   defp post!(url, body) do
-    headers = [{"Content-Type", "application/json"}]
-    
-    IO.puts url
+    headers     = [{"Content-Type", "application/json"}]
+    {:ok, json} = Poison.encode(body)
 
-    case HTTPoison.post(url, body, headers) do
+    IO.puts url
+    IO.inspect json
+
+    case HTTPoison.post(url, json, headers) do
       {:ok, _} -> IO.puts(".")
       _ -> IO.puts("uh oh")
     end

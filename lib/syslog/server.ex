@@ -18,8 +18,9 @@ defmodule Aggie.SyslogServer do
     case :gen_tcp.recv(socket, 0) do
       {:error, :closed} -> :ok
       {:ok, data} ->
-        case Judge.verdict?(data) do
-          true -> Shipper.ship!(data)
+        log = to_string(data)
+        case Judge.verdict?(log) do
+          true -> Shipper.ship!(log)
         end
 
         do_server(socket)
