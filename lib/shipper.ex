@@ -1,4 +1,5 @@
 defmodule Aggie.Shipper do
+  alias Aggie.Info
 
   @central_elk "162.242.253.228:9200"
 
@@ -7,7 +8,7 @@ defmodule Aggie.Shipper do
   """
   def ship!(data) do
     case is_map(data) do
-      true -> ship_elk_logs!(data)
+      true  -> ship_elk_logs!(data)
       false -> ship_syslog_log!(data)
     end
   end
@@ -18,7 +19,6 @@ defmodule Aggie.Shipper do
     Enum.each(logs, fn(l) ->
       {:ok, body} = Poison.encode(l["_source"])
       url         = "#{@central_elk}/#{l["_index"]}/log"
-
       post!(url, body)
     end)
   end
@@ -29,7 +29,8 @@ defmodule Aggie.Shipper do
     date  = now |> Timex.format!("{YYYY}.{0M}.{D}")
     index = "rsyslog-#{date}"
     url   = "#{@central_elk}/#{index}/log"
-    data  = %{ message: log, "@timestamp": time }
+    id    = Info.get(:app_data)[:tenant_id]
+    data  = %{ message: log, "@timestamp": time, tenant_id: id }
 
     post!(url, data)
   end
