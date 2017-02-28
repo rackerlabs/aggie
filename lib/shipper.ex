@@ -38,11 +38,7 @@ defmodule Aggie.Shipper do
   defp post!(url, body) do
     headers     = [{"Content-Type", "application/json"}]
     {:ok, json} = Poison.encode(body)
-
-    case HTTPoison.post(url, json, headers) do
-      {:ok, _} -> IO.puts(".")
-      _ -> IO.puts("uh oh")
-    end
+    HTTPoison.post(url, json, headers)
   end
 
 end
