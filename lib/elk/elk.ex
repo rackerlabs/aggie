@@ -10,10 +10,6 @@ defmodule Aggie.Elk do
   # @ip "172.29.238.40:9200" # Darby
   @ip "172.29.238.99:9200" # Antony
 
-  @primary_config "/etc/openstack_deploy/user_rpco_variables_overrides.yml"
-  @secondary_config "/etc/rpc_deploy/user_variables.yml"
-  @tertiary_config File.cwd! |> Path.join("test/sample.yml")
-
   @range "now-10m"
   @chunks 1000
   @timeout "1m"
@@ -21,13 +17,13 @@ defmodule Aggie.Elk do
   @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
   """
-  def ship! do
-    Aggie.Shipper.ship!(logs())
+  def ship_latest_logs! do
+    Aggie.Shipper.ship!(valuable_logs())
   end
 
 
 
-  defp logs do
+  defp valuable_logs do
     Enum.reduce page([]), [], fn(log, acc) ->
       case Judge.verdict?(log) do
         true -> acc ++ [log]
@@ -38,7 +34,6 @@ defmodule Aggie.Elk do
 
   defp page(acc) do
     case HTTPoison.request(:get, base_url(), page_request_body()) do
-      {:error, resp} -> IO.inspect(resp)
       {:ok, resp} ->
         {:ok, json} = Poison.decode(resp.body)
         raw_logs    = json["hits"]["hits"]
@@ -92,21 +87,9 @@ defmodule Aggie.Elk do
   end
 
   defp hostname(log) do
-    tenant_id = tenant_id()
+    tenant_id = Aggie.Info.get(:app_data)[:tenant_id]
     hostname  = log["_source"]["beat"]["hostname"]
     "#{tenant_id}.#{hostname}"
-  end
-
-  defp tenant_id do
-    path = cond do
-      File.exists?(@primary_config) -> @primary_config
-      File.exists?(@secondary_config) -> @secondary_config
-      File.exists?(@tertiary_config) -> @tertiary_config
-      true -> raise "No config file for MaaS?"
-    end
-
-    config = YamlElixir.read_from_file(path)
-    config["maas_tenant_id"]
   end
 
   defp page_request_body do
