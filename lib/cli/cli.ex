@@ -1,4 +1,4 @@
-defmodule Commandline.CLI do
+defmodule Aggie.CLI do
 
   def main(args) do
     {opts,_,_} = OptionParser.parse(args, switches: [syslog: :boolean, tenant_id: :string])

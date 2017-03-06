@@ -7,7 +7,7 @@ defmodule Aggie.Mixfile do
     elixir: "~> 1.4",
     build_embedded: Mix.env == :prod,
     start_permanent: Mix.env == :prod,
-    escript: [main_module: Commandline.CLI],
+    escript: [main_module: Aggie.CLI],
     deps: deps()]
   end
 
