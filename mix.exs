@@ -32,7 +32,7 @@ defmodule Aggie.Mixfile do
     [
       {:apex, "~> 0.7.0"},
       {:credo, "~> 0.5", only: [:dev, :test]},
-      {:distillery, "~> 1.1"},
+      {:distillery, "~> 1.2.2"},
       {:ex_doc, "~> 0.13", only: :dev},
       {:httpoison, "~> 0.10.0"},
       {:poison, "~> 3.0"},
