@@ -32,7 +32,10 @@ defmodule Aggie.CLI do
   end
 
   defp print_usage do
-    IO.puts "Error: Requires --tenant-id"
+    IO.puts "How to use Aggie:"
+    IO.puts "ELK aggregation: ./aggie --tenant-id 000000"
+    IO.puts "Syslog aggregation: ./aggie --syslog --tenant-id 000000"
+    IO.puts "Show Version: ./aggie --version"
   end
 
   defp print_version do
