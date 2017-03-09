@@ -87,7 +87,8 @@ defmodule Aggie.Elk do
   end
 
   defp hostname(log) do
-    tenant_id = Aggie.Info.get(:app_data)[:tenant_id]
+    # tenant_id = Aggie.Info.get(:app_data)[:tenant_id]
+    tenant_id = "930035"
     hostname  = log["_source"]["beat"]["hostname"]
     "#{tenant_id}.#{hostname}"
   end

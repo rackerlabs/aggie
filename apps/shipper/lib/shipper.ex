@@ -29,7 +29,9 @@ defmodule Aggie.Shipper do
     date  = now |> Timex.format!("{YYYY}.{0M}.{D}")
     index = "rsyslog-#{date}"
     url   = "#{@central_elk}/#{index}/log"
-    id    = Info.get(:app_data)[:tenant_id]
+    # id    = Info.get(:app_data)[:tenant_id]
+    id    = 930035
+    log   = List.to_string(log)
     data  = %{ message: log, "@timestamp": time, tenant_id: id }
 
     post!(url, data)
