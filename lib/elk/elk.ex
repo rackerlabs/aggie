@@ -15,23 +15,45 @@ defmodule Aggie.Elk do
   @timeout "1m"
 
   @doc """
+  Aggregate OpenStack logs into cohesive actions via request ID
+  """
+  def latest_actions do
+    Enum.reduce get_latest_request_ids(), [], fn(id, acc) ->
+      acc ++ get_info_about_request(id)
+    end
+  end
+
+  def get_info_about_request(id) do
+    url = "#{base_url()}&q=#{id}"
+
+    case HTTPoison.request(:get, url) do
+      {:ok, resp} ->
+        {:ok, json} = Poison.decode(resp.body)
+        raw_logs    = json["hits"]["hits"]
+
+        Enum.reduce raw_logs, [], fn(log, a) ->
+          a ++ [log["_source"]["message"]]
+        end
+    end
+  end
+
+  @doc """
   Loop through logs and get unique request IDs
   """
   def get_latest_request_ids do
     regex = ~r/req-[a-z|0-9|-]*/
 
-    ids = Enum.reduce Aggie.Elk.valuable_logs(), [], fn(log, acc) ->
+    ids = Enum.reduce valuable_logs(), [], fn(log, acc) ->
       message = log["_source"]["message"]
       match   = Regex.scan(regex, message) |> List.first
 
-      # CAPTURE REQID AND ACC
       case match do
         nil -> acc
         _ -> acc ++ match
       end
     end
 
-    ids |> Enum.uniq 
+    ids |> Enum.uniq
   end
 
   @doc """
@@ -43,7 +65,7 @@ defmodule Aggie.Elk do
 
 
 
-  def valuable_logs do
+  defp valuable_logs do
     Enum.reduce page([]), [], fn(log, acc) ->
       case Judge.verdict?(log) do
         true -> acc ++ [log]
