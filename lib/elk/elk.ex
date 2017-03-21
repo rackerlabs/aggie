@@ -10,12 +10,28 @@ defmodule Aggie.Elk do
   @ip "172.29.238.40:9200" # Darby
   # @ip "172.29.238.99:9200" # Antony
 
-  @range "now-10m"
+  @range "now-120m"
   @chunks 1000
   @timeout "1m"
 
+  @doc """
+  Loop through logs and get unique request IDs
+  """
   def get_latest_request_ids do
-    IO.inspect valuable_logs()
+    regex = ~r/req-[a-z|0-9|-]*/
+
+    ids = Enum.reduce Aggie.Elk.valuable_logs(), [], fn(log, acc) ->
+      message = log["_source"]["message"]
+      match   = Regex.scan(regex, message) |> List.first
+
+      # CAPTURE REQID AND ACC
+      case match do
+        nil -> acc
+        _ -> acc ++ match
+      end
+    end
+
+    ids |> Enum.uniq 
   end
 
   @doc """
@@ -27,7 +43,7 @@ defmodule Aggie.Elk do
 
 
 
-  defp valuable_logs do
+  def valuable_logs do
     Enum.reduce page([]), [], fn(log, acc) ->
       case Judge.verdict?(log) do
         true -> acc ++ [log]
