@@ -7,12 +7,16 @@ defmodule Aggie.Elk do
 
   alias Aggie.Judge
 
-  # @ip "172.29.238.40:9200" # Darby
-  @ip "172.29.238.99:9200" # Antony
+  @ip "172.29.238.40:9200" # Darby
+  # @ip "172.29.238.99:9200" # Antony
 
   @range "now-10m"
   @chunks 1000
   @timeout "1m"
+
+  def get_latest_request_ids do
+    IO.inspect valuable_logs()
+  end
 
   @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
@@ -87,7 +91,7 @@ defmodule Aggie.Elk do
   end
 
   defp hostname(log) do
-    tenant_id = Aggie.Info.get(:app_data)[:tenant_id]
+    tenant_id = "930035"
     hostname  = log["_source"]["beat"]["hostname"]
     "#{tenant_id}.#{hostname}"
   end

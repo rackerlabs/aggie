@@ -1,5 +1,4 @@
 defmodule Aggie.Shipper do
-  alias Aggie.Info
 
   @central_elk "162.242.253.228:9200"
 
@@ -29,7 +28,7 @@ defmodule Aggie.Shipper do
     date  = now |> Timex.format!("{YYYY}.{0M}.{D}")
     index = "rsyslog-#{date}"
     url   = "#{@central_elk}/#{index}/log"
-    id    = Info.get(:app_data)[:tenant_id]
+    id    = "930035"
     data  = %{ message: log, "@timestamp": time, tenant_id: id }
 
     post!(url, data)
