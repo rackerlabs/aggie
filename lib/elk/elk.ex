@@ -10,7 +10,7 @@ defmodule Aggie.Elk do
   @ip "172.29.237.88:9200" # Darby
   # @ip "172.29.238.99:9200" # Antony
 
-  @range "now-1d/d"
+  @range "now-10m"
   @chunks 1000
   @timeout "1m"
 
