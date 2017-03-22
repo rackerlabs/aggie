@@ -8,10 +8,9 @@ defmodule Aggie.Elk do
   alias Aggie.Judge
 
   @ip "172.29.237.88:9200" # Darby
-  # @ip "172.29.238.99:9200" # Antony
 
   @range "now-1d/d"
-  @chunks 1000
+  @chunks 10000
   @timeout "1m"
 
   @doc """
@@ -25,6 +24,8 @@ defmodule Aggie.Elk do
 
   def get_info_about_request(id) do
     url = "#{base_url()}&q=#{id}"
+
+    IO.puts "Getting #{url}"
 
     case HTTPoison.request(:get, url) do
       {:ok, resp} ->
@@ -45,7 +46,8 @@ defmodule Aggie.Elk do
 
     ids = Enum.reduce valuable_logs(), [], fn(log, acc) ->
       message = log["_source"]["message"]
-      match   = Regex.scan(regex, message) |> List.first
+      matches = Regex.scan(regex, message)
+      match   = matches |> List.first
 
       case match do
         nil -> acc
@@ -65,7 +67,7 @@ defmodule Aggie.Elk do
 
 
 
-  defp valuable_logs do
+  def valuable_logs do
     Enum.reduce page([]), [], fn(log, acc) ->
       case Judge.verdict?(log) do
         true -> acc ++ [log]
@@ -109,6 +111,7 @@ defmodule Aggie.Elk do
           10 -> acc
           _ ->
             logs = raw_logs |> update_hostname
+            IO.inspect json["_scroll_id"]
             page(acc ++ logs, json["_scroll_id"])
         end
     end
@@ -141,6 +144,9 @@ defmodule Aggie.Elk do
       query: %{
         bool: %{
           must: %{
+            term: %{ tags: "nova"},
+          },
+          must: %{
             range: %{
               "@timestamp": %{
                 gte: @range,
@@ -150,7 +156,6 @@ defmodule Aggie.Elk do
           }
         }
       }
-    }
-    |> Poison.encode!
+    } |> Poison.encode!
   end
 end
