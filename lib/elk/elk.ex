@@ -10,7 +10,7 @@ defmodule Aggie.Elk do
   @ip "172.29.237.88:9200" # Darby
   # @ip "172.29.238.99:9200" # Antony
 
-  @range "now-10m"
+  @range "now-1d/d"
   @chunks 1000
   @timeout "1m"
 
@@ -140,14 +140,11 @@ defmodule Aggie.Elk do
       sort: ["_doc"],
       query: %{
         bool: %{
-          must_not: [
-            %{term: %{ "loglevel": "debug" } },
-            %{term: %{ "loglevel": "info" } }
-          ],
           must: %{
             range: %{
               "@timestamp": %{
-                gte: @range
+                gte: @range,
+                lte: "now"
               }
             }
           }
