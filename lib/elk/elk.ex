@@ -7,10 +7,10 @@ defmodule Aggie.Elk do
 
   alias Aggie.Judge
 
-  @ip "172.29.238.40:9200" # Darby
+  @ip "172.29.237.88:9200" # Darby
   # @ip "172.29.238.99:9200" # Antony
 
-  @range "now-120m"
+  @range "now-1d/d"
   @chunks 1000
   @timeout "1m"
 
