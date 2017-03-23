@@ -9,31 +9,36 @@ defmodule Aggie.Elk do
 
   @ip "172.29.237.88:9200" # Darby
 
-  @range "now-1d/d"
+  @range "now-10m"
   @chunks 10000
   @timeout "1m"
+
 
   @doc """
   Aggregate OpenStack logs into cohesive actions via request ID
   """
   def latest_actions do
     Enum.reduce get_latest_request_ids(), [], fn(id, acc) ->
-      acc ++ get_info_about_request(id)
+      acc ++ [get_info_about_request(id)]
     end
   end
 
   def get_info_about_request(id) do
-    url = "#{base_url()}&q=#{id}"
+    body = %{
+      query: %{
+        match: %{
+	  logmessage: id
+	}
+      }
+    } |> Poison.encode!
 
-    IO.puts "Getting #{url}"
-
-    case HTTPoison.request(:get, url) do
+    case HTTPoison.request(:get, base_url(), body) do
       {:ok, resp} ->
         {:ok, json} = Poison.decode(resp.body)
         raw_logs    = json["hits"]["hits"]
 
         Enum.reduce raw_logs, [], fn(log, a) ->
-          a ++ [log["_source"]["message"]]
+          a ++ [log["_source"]["logmessage"]]
         end
     end
   end
@@ -42,12 +47,19 @@ defmodule Aggie.Elk do
   Loop through logs and get unique request IDs
   """
   def get_latest_request_ids do
-    regex = ~r/req-[a-z|0-9|-]*/
+    regex = ~r/(req-[a-z|0-9|-]*)/
+    logs = valuable_logs()
 
-    ids = Enum.reduce valuable_logs(), [], fn(log, acc) ->
-      message = log["_source"]["message"]
+    ids = Enum.reduce logs, [], fn(log, acc) ->
+      message = log["_source"]["logmessage"]
+
+      case message do
+        nil -> message = log["_source"]["message"]
+	_ -> message
+      end
+
       matches = Regex.scan(regex, message)
-      match   = matches |> List.first
+      match   = matches |> Enum.uniq |> List.first
 
       case match do
         nil -> acc
@@ -83,18 +95,19 @@ defmodule Aggie.Elk do
         raw_logs    = json["hits"]["hits"]
 
         case raw_logs do
-          [] -> []
-          nil -> []
+          [] -> acc
+          nil -> acc
           _  ->
             acc = acc ++ (raw_logs |> update_hostname)
-            page(acc, json["_scroll_id"])
+            #page(acc, json["_scroll_id"])
+            acc
         end
     end
   end
 
   defp page(acc, scroll_id) do
     url         = "#{base_url()}&scroll_id=#{scroll_id}"
-    resp        = HTTPoison.get!(url)
+    {:ok, resp} = HTTPoison.request(:get, url, page_request_body())
     {:ok, json} = Poison.decode(resp.body)
     raw_logs    = json["hits"]["hits"]
 
@@ -102,18 +115,8 @@ defmodule Aggie.Elk do
       [] -> acc
       nil -> acc
       _  ->
-        count = raw_logs |> Enum.count
-
-        # For some reason in ES 2.4.1 we receive
-        # the last ten results repeatedly. Let's
-        # use that as a stop condition.
-        case count do
-          10 -> acc
-          _ ->
-            logs = raw_logs |> update_hostname
-            IO.inspect json["_scroll_id"]
-            page(acc ++ logs, json["_scroll_id"])
-        end
+          logs = raw_logs |> update_hostname
+          page(acc ++ logs, json["_scroll_id"])
     end
   end
 
@@ -144,13 +147,10 @@ defmodule Aggie.Elk do
       query: %{
         bool: %{
           must: %{
-            term: %{ tags: "nova"},
-          },
-          must: %{
             range: %{
               "@timestamp": %{
                 gte: @range,
-                lte: "now"
+                lte: "now/d"
               }
             }
           }

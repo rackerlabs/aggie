@@ -12,11 +12,15 @@ defmodule AggieTest do
     assert Aggie.Elk.latest_actions |> Enum.count > 1
   end
 
-  test "asdf" do
+  test "we have data" do
     regex = ~r/darby/
-    action = Enum.find(Aggie.Elk.latest_actions, fn(a) -> Regex.match?(regex, a) end)
-IO.inspect action
-    # Enum.each(Aggie.Elk.latest_actions, fn(a) -> IO.puts a end)
+
+    action = Enum.find(Aggie.Elk.latest_actions, fn(action) -> 
+      Enum.any?(action, fn(str) -> Regex.match?(regex, str) end)
+    end)
+
+    assert action
+
   end
 
 end
