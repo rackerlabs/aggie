@@ -30,4 +30,10 @@ defmodule AggieTest do
     assert out.image_id
   end
 
+  test "valuable info" do
+    Enum.each(Aggie.Elk.Action.latest_actions(), fn(a) ->
+      IO.inspect a
+    end)
+  end
+
 end
