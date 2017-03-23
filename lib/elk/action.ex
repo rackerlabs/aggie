@@ -9,7 +9,8 @@ defmodule Aggie.Elk.Action do
     end
   end
 
-  def get_info_about_request(id) do
+
+  defp get_info_about_request(id) do
     body = %{
       query: %{
         match: %{
@@ -29,10 +30,7 @@ defmodule Aggie.Elk.Action do
     end
   end
 
-  @doc """
-  Loop through logs and get unique request IDs
-  """
-  def get_latest_request_ids do
+  defp get_latest_request_ids do
     regex = ~r/(req-[a-z|0-9|-]*)/
     logs = Aggie.Elk.latest_logs()
 

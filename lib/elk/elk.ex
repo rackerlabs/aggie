@@ -18,7 +18,6 @@ defmodule Aggie.Elk do
     Aggie.Elk.Action.latest_actions()
   end
 
-
   @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
   """
@@ -33,6 +32,17 @@ defmodule Aggie.Elk do
     Enum.reduce(page([]), [], fn(log, acc) -> acc ++ [log] end)
   end
 
+  @doc """
+  The base Elasticsearch URL
+  """
+  def base_url do
+    {:ok, date} = Timex.format(Timex.today, "%Y.%m.%d", :strftime)
+    name = "logstash-#{date}"
+    "#{@ip}/#{name}/_search?scroll=#{@timeout}"
+  end
+
+
+
   defp page(acc) do
     case HTTPoison.request(:get, base_url(), page_request_body()) do
       {:ok, resp} ->
@@ -45,12 +55,6 @@ defmodule Aggie.Elk do
           _  -> acc ++ (raw_logs |> update_hostname)
         end
     end
-  end
-
-  defp base_url do
-    {:ok, date} = Timex.format(Timex.today, "%Y.%m.%d", :strftime)
-    name = "logstash-#{date}"
-    "#{@ip}/#{name}/_search?scroll=#{@timeout}"
   end
 
   defp update_hostname(logs) do

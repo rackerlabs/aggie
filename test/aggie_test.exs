@@ -4,12 +4,8 @@ defmodule AggieTest do
   use ExUnit.Case
   doctest Aggie
 
-  test "get_latest_request_ids" do
-    assert Aggie.Elk.get_latest_request_ids |> Enum.count > 0
-  end
-
   test "latest actions" do
-    assert Aggie.Elk.latest_actions |> Enum.count > 1
+    assert Aggie.Elk.Action.latest_actions |> Enum.count > 1
   end
 
   test "we have data" do
