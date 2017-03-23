@@ -20,7 +20,28 @@ defmodule AggieTest do
     end)
 
     assert action
+  end
 
+  test "getting the UUID" do
+    {:ok, body} = File.read("test/sample_action.txt")
+    {:ok, json} = Poison.decode(body)
+
+    uuid       = ~r/, id:\s([a-z|0-9|-]*), size:/
+    project_id = ~r/projects\/([a-z|0-9]*)/
+    domain_id  = ~r/domain_id\\": \\"(\w+)\\"/
+    request_id = ~r/\[(req[a-z|0-9|-]*)/
+    image_name = ~r/image_name:\s(.*), image_id:/
+    image_id   = ~r/image_id:\s(.*), container/
+
+#     -   Duration
+#     -   Assigned Host
+#     -   Error message
+#     -   Flavor and specs and tags
+#     -   Network Ports Information (see below)
+#     -   Attached volumes
+
+
+    IO.inspect json
   end
 
 end
