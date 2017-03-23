@@ -18,25 +18,16 @@ defmodule AggieTest do
     assert action
   end
 
-  test "getting the UUID" do
+  test "payload" do
     {:ok, body} = File.read("test/sample_action.txt")
     {:ok, json} = Poison.decode(body)
-
-    uuid       = ~r/, id:\s([a-z|0-9|-]*), size:/
-    project_id = ~r/projects\/([a-z|0-9]*)/
-    domain_id  = ~r/domain_id\\": \\"(\w+)\\"/
-    request_id = ~r/\[(req[a-z|0-9|-]*)/
-    image_name = ~r/image_name:\s(.*), image_id:/
-    image_id   = ~r/image_id:\s(.*), container/
-
-#     -   Duration
-#     -   Assigned Host
-#     -   Error message
-#     -   Flavor and specs and tags
-#     -   Network Ports Information (see below)
-#     -   Attached volumes
-
-    IO.inspect json
+    out = Aggie.Elk.Action.parse_action(json)
+    assert out.uuid
+    assert out.project_id
+    assert out.domain_id
+    assert out.request_id
+    assert out.image_name
+    assert out.image_id
   end
 
 end
