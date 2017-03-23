@@ -5,87 +5,32 @@ defmodule Aggie.Elk do
   Aggie is the RPC log aggregator
   """
 
-  alias Aggie.Judge
-
   @ip "172.29.237.88:9200" # Darby
 
   @range "now-10m"
   @chunks 10000
   @timeout "1m"
 
-
   @doc """
-  Aggregate OpenStack logs into cohesive actions via request ID
+  Group recent Openstack requests into "actions"
   """
   def latest_actions do
-    Enum.reduce get_latest_request_ids(), [], fn(id, acc) ->
-      acc ++ [get_info_about_request(id)]
-    end
+    Aggie.Elk.Action.latest_actions()
   end
 
-  def get_info_about_request(id) do
-    body = %{
-      query: %{
-        match: %{
-	  logmessage: id
-	}
-      }
-    } |> Poison.encode!
-
-    case HTTPoison.request(:get, base_url(), body) do
-      {:ok, resp} ->
-        {:ok, json} = Poison.decode(resp.body)
-        raw_logs    = json["hits"]["hits"]
-
-        Enum.reduce raw_logs, [], fn(log, a) ->
-          a ++ [log["_source"]["logmessage"]]
-        end
-    end
-  end
-
-  @doc """
-  Loop through logs and get unique request IDs
-  """
-  def get_latest_request_ids do
-    regex = ~r/(req-[a-z|0-9|-]*)/
-    logs = valuable_logs()
-
-    ids = Enum.reduce logs, [], fn(log, acc) ->
-      message = log["_source"]["logmessage"]
-
-      case message do
-        nil -> message = log["_source"]["message"]
-	_ -> message
-      end
-
-      matches = Regex.scan(regex, message)
-      match   = matches |> Enum.uniq |> List.first
-
-      case match do
-        nil -> acc
-        _ -> acc ++ match
-      end
-    end
-
-    ids |> Enum.uniq
-  end
 
   @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
   """
   def ship_latest_logs! do
-    Aggie.Shipper.ship!(valuable_logs())
+    Aggie.Shipper.ship!(latest_logs())
   end
 
-
-
-  def valuable_logs do
-    Enum.reduce page([]), [], fn(log, acc) ->
-      case Judge.verdict?(log) do
-        true -> acc ++ [log]
-        _    -> acc
-      end
-    end
+  @doc """
+  Get the latest logs from the local Elasticsearch container
+  """
+  def latest_logs do
+    Enum.reduce(page([]), [], fn(log, acc) -> acc ++ [log] end)
   end
 
   defp page(acc) do
@@ -97,26 +42,8 @@ defmodule Aggie.Elk do
         case raw_logs do
           [] -> acc
           nil -> acc
-          _  ->
-            acc = acc ++ (raw_logs |> update_hostname)
-            #page(acc, json["_scroll_id"])
-            acc
+          _  -> acc ++ (raw_logs |> update_hostname)
         end
-    end
-  end
-
-  defp page(acc, scroll_id) do
-    url         = "#{base_url()}&scroll_id=#{scroll_id}"
-    {:ok, resp} = HTTPoison.request(:get, url, page_request_body())
-    {:ok, json} = Poison.decode(resp.body)
-    raw_logs    = json["hits"]["hits"]
-
-    case raw_logs do
-      [] -> acc
-      nil -> acc
-      _  ->
-          logs = raw_logs |> update_hostname
-          page(acc ++ logs, json["_scroll_id"])
     end
   end
 

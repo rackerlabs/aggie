@@ -15,7 +15,7 @@ defmodule AggieTest do
   test "we have data" do
     regex = ~r/darby/
 
-    action = Enum.find(Aggie.Elk.latest_actions, fn(action) -> 
+    action = Enum.find(Aggie.Elk.latest_actions, fn(action) ->
       Enum.any?(action, fn(str) -> Regex.match?(regex, str) end)
     end)
 
@@ -39,7 +39,6 @@ defmodule AggieTest do
 #     -   Flavor and specs and tags
 #     -   Network Ports Information (see below)
 #     -   Attached volumes
-
 
     IO.inspect json
   end
