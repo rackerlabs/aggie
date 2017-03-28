@@ -17,12 +17,12 @@ defmodule Aggie.Shipper do
   end
 
   defp post!(log) do
+    # TODO: Clean up how tenant_id handling
+    log         = log |> Map.merge(%{tenant_id: "930035"})
     url         = "#{@central_elk}/#{index()}/log"
     headers     = [{"Content-Type", "application/json"}]
     {:ok, json} = Poison.encode(log)
-    here = HTTPoison.post(url, json, headers)
-IO.inspect here
-here
+    HTTPoison.post(url, json, headers)
   end
 
 end

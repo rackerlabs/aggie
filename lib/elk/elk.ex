@@ -52,23 +52,9 @@ defmodule Aggie.Elk do
         case raw_logs do
           [] -> acc
           nil -> acc
-          _  -> acc ++ (raw_logs |> update_hostname)
+          _  -> acc ++ raw_logs
         end
     end
-  end
-
-  defp update_hostname(logs) do
-    new_hostname = hostname(logs |> Enum.to_list |> List.first)
-
-    Enum.map(logs, fn(l) ->
-      put_in(l, ["_source", "beat", "hostname"], new_hostname)
-    end)
-  end
-
-  defp hostname(log) do
-    tenant_id = "930035"
-    hostname  = log["_source"]["beat"]["hostname"]
-    "#{tenant_id}.#{hostname}"
   end
 
   defp page_request_body do
