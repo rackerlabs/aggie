@@ -23,60 +23,31 @@ defmodule Aggie.Elk.Action do
   """
   def latest_actions do
     Enum.reduce get_latest_request_ids(), [], fn(id, acc) ->
-      acc ++ (get_info_about_request(id) |> parse_action)
-      # acc ++ [get_info_about_request(id)]
+      acc ++ [(get_info_about_request(id) |> parse_action)]
     end
   end
 
-  def parse_action(action) do
-    string = action |> Enum.join(" ")
 
-    uuid = try do
-      Regex.run(@uuid_regex, string) |> List.last
+  defp get_value(regex, string) do
+    try do
+      Regex.run(regex, string) |> List.last
     rescue
       FunctionClauseError -> ""
     end
+  end
 
-    project_id = try do
-      Regex.run(@project_id_regex, string) |> List.last
-    rescue
-      FunctionClauseError -> ""
-    end
-
-    domain_id = try do
-      Regex.run(@domain_id_regex, string) |> List.last
-    rescue
-      FunctionClauseError -> ""
-    end
-
-    request_id = try do
-      Regex.run(@request_id_regex, string) |> List.last
-    rescue
-      FunctionClauseError -> ""
-    end
-
-    image_name = try do
-      Regex.run(@image_name_regex, string) |> List.last
-    rescue
-      FunctionClauseError -> ""
-    end
-
-    image_id = try do
-      Regex.run(@image_id_regex, string) |> List.last
-    rescue
-      FunctionClauseError -> ""
-    end
+  defp parse_action(action) do
+    string = Enum.join(action, " ")
 
     %{
-      uuid: uuid,
-      project_id: project_id,
-      domain_id: domain_id,
-      request_id: request_id,
-      image_name: image_name,
-      image_id: image_id
+      uuid: get_value(@uuid_regex, string),
+      project_id: get_value(@project_id_regex, string),
+      domain_id: get_value(@domain_id_regex, string),
+      request_id: get_value(@request_id_regex, string),
+      image_name: get_value(@image_name_regex, string),
+      image_id: get_value(@image_id_regex, string)
     }
   end
-
 
   defp get_info_about_request(id) do
     body = %{
