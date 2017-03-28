@@ -16,6 +16,7 @@ defmodule Aggie.Elk.Action do
   @request_id_regex  ~r/\[(req[a-z|0-9|-]*)/
   @image_name_regex  ~r/image_name:\s(.*), image_id:/
   @image_id_regex    ~r/image_id:\s(.*), container/
+  @timestamp_regex   ~r/\[(\w{3}\s\w{3}\s\d{2}\s\d{2}:\d{2}:\d{2}.\d+\s\d{4})\]/
 
 
   @doc """
@@ -23,7 +24,7 @@ defmodule Aggie.Elk.Action do
   """
   def latest_actions do
     Enum.reduce get_latest_request_ids(), [], fn(id, acc) ->
-      acc ++ (get_info_about_request(id) |> parse_action)
+      acc ++ [(get_info_about_request(id) |> parse_action)]
       # acc ++ [get_info_about_request(id)]
     end
   end
@@ -33,6 +34,12 @@ defmodule Aggie.Elk.Action do
 
     uuid = try do
       Regex.run(@uuid_regex, string) |> List.last
+    rescue
+      FunctionClauseError -> ""
+    end
+
+    timestamp = try do
+      Regex.run(@timestamp_regex, string) |> List.last
     rescue
       FunctionClauseError -> ""
     end
@@ -73,7 +80,8 @@ defmodule Aggie.Elk.Action do
       domain_id: domain_id,
       request_id: request_id,
       image_name: image_name,
-      image_id: image_id
+      image_id: image_id,
+      timestamp: timestamp
     }
   end
 
