@@ -8,12 +8,12 @@ defmodule Aggie.Shipper do
   Forwards the latest valuable logs from local ELK to Central ELK
   """
   def ship!(logs) do
-    Enum.each(logs, fn(l) -> post!(l) end)
+    Enum.each(logs, fn(l) -> post!(l["_source"]) end)
   end
 
   defp index do
     date = Timex.now |> Timex.format!("{YYYY}.{0M}.{D}")
-    "aggie4-#{date}"
+    "bouncing-ball3-#{date}"
   end
 
   defp post!(log) do
@@ -22,7 +22,11 @@ defmodule Aggie.Shipper do
     url         = "#{@central_elk}/#{index()}/log"
     headers     = [{"Content-Type", "application/json"}]
     {:ok, json} = Poison.encode(log)
-    HTTPoison.post(url, json, headers)
+    
+    case HTTPoison.post(url, json, headers) do
+      {:ok, _} -> IO.write '.'
+      {:error, out} -> IO.inspect out
+    end
   end
 
 end
