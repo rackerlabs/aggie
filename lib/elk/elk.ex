@@ -12,17 +12,10 @@ defmodule Aggie.Elk do
   @timeout "1m"
 
   @doc """
-  Group recent Openstack requests into "actions"
-  """
-  def latest_actions do
-    Aggie.Elk.Action.latest_actions()
-  end
-
-  @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
   """
   def ship_latest_logs! do
-    Aggie.Shipper.ship!(latest_actions())
+    Aggie.Shipper.ship!(latest_logs())
   end
 
   @doc """
@@ -63,6 +56,11 @@ defmodule Aggie.Elk do
       sort: ["_doc"],
       query: %{
         bool: %{
+          must_not: %{
+            term: %{
+              tags: "libvirt"
+            }
+          },
           must: %{
             range: %{
               "@timestamp": %{
