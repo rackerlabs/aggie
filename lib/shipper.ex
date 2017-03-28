@@ -1,3 +1,5 @@
+require IEx
+
 defmodule Aggie.Shipper do
 
   @central_elk "162.242.253.228:9200"
@@ -5,39 +7,22 @@ defmodule Aggie.Shipper do
   @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
   """
-  def ship!(data) do
-    case is_map(data) do
-      true  -> ship_elk_logs!(data)
-      false -> ship_syslog_log!(data)
-    end
+  def ship!(logs) do
+    Enum.each(logs, fn(l) -> post!(l) end)
   end
 
-
-
-  defp ship_elk_logs!(logs) do
-    Enum.each(logs, fn(l) ->
-      {:ok, body} = Poison.encode(l["_source"])
-      url         = "#{@central_elk}/#{l["_index"]}/log"
-      post!(url, body)
-    end)
+  defp index do
+    date = Timex.now |> Timex.format!("{YYYY}.{0M}.{D}")
+    "aggie4-#{date}"
   end
 
-  defp ship_syslog_log!(log) do
-    now   = Timex.now
-    time  = now |> DateTime.to_iso8601
-    date  = now |> Timex.format!("{YYYY}.{0M}.{D}")
-    index = "rsyslog-#{date}"
-    url   = "#{@central_elk}/#{index}/log"
-    id    = "930035"
-    data  = %{ message: log, "@timestamp": time, tenant_id: id }
-
-    post!(url, data)
-  end
-
-  defp post!(url, body) do
+  defp post!(log) do
+    url         = "#{@central_elk}/#{index()}/log"
     headers     = [{"Content-Type", "application/json"}]
-    {:ok, json} = Poison.encode(body)
-    HTTPoison.post(url, json, headers)
+    {:ok, json} = Poison.encode(log)
+    here = HTTPoison.post(url, json, headers)
+IO.inspect here
+here
   end
 
 end

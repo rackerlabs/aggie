@@ -22,7 +22,7 @@ defmodule Aggie.Elk do
   Forwards the latest valuable logs from local ELK to Central ELK
   """
   def ship_latest_logs! do
-    Aggie.Shipper.ship!(latest_logs())
+    Aggie.Shipper.ship!(latest_actions())
   end
 
   @doc """

@@ -23,9 +23,9 @@ defmodule Aggie.Elk.Action do
   Aggregate OpenStack logs into cohesive actions via request ID
   """
   def latest_actions do
-    Enum.reduce get_latest_request_ids(), [], fn(id, acc) ->
+    Enum.reduce(get_latest_request_ids(), [], fn(id, acc) ->
       acc ++ [(get_info_about_request(id) |> parse_action)]
-    end
+    end) |> Enum.reject(fn(a) -> a == nil end)
   end
 
 
@@ -40,15 +40,36 @@ defmodule Aggie.Elk.Action do
   defp parse_action(action) do
     string = Enum.join(action, " ")
 
-    %{
+    action = %{
       uuid: get_value(@uuid_regex, string),
       project_id: get_value(@project_id_regex, string),
       domain_id: get_value(@domain_id_regex, string),
       request_id: get_value(@request_id_regex, string),
       image_name: get_value(@image_name_regex, string),
       image_id: get_value(@image_id_regex, string),
-      timestamp: get_value(@timestamp_regex, string)
+      timestamp: get_value(@timestamp_regex, string) |> es_format()
     }
+
+    valid = action |> Enum.all?(fn({_, v}) -> v != "" end) 
+
+    case valid do
+      true -> action
+      false -> nil
+    end
+  end
+
+  defp es_format(string) do
+    # Have: Thu Mar 23 14:28:10.614263 2017
+    # Need: 2015/01/01 12:10:30
+
+    try do
+      { :ok, timestamp } = Timex.parse(string, "%a %b %d %H:%M:%S.%f %Y", :strftime)
+      { :ok, out } = Timex.format(timestamp, "%Y/%m/%d %H:%M:%S", :strftime)
+      out |> to_string()
+    rescue
+      # Many times the string will be blank.
+      _ -> ""
+    end
   end
 
   defp get_info_about_request(id) do
