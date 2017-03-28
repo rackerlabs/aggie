@@ -35,6 +35,7 @@ defmodule Aggie.Mixfile do
       {:distillery, "~> 1.2.2"},
       {:ex_doc, "~> 0.13", only: :dev},
       {:httpoison, "~> 0.10.0"},
+      {:benchfella, "~> 0.3.0"},
       {:poison, "~> 3.0"},
       {:timex, "~> 3.0"},
       {:tzdata, "== 0.1.8", override: true},

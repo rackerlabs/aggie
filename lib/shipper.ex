@@ -8,12 +8,12 @@ defmodule Aggie.Shipper do
   Forwards the latest valuable logs from local ELK to Central ELK
   """
   def ship!(logs) do
-    Enum.each(logs, fn(l) -> post!(l["_source"]["message"]) end)
+    Enum.each(logs, fn(l) -> post!(l["_source"]) end)
   end
 
   defp index do
     date = Timex.now |> Timex.format!("{YYYY}.{0M}.{D}")
-    "bouncing-ball4-#{date}"
+    "bouncing-ball5-#{date}"
   end
 
   defp post!(log) do

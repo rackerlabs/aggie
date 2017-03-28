@@ -1,6 +1,8 @@
 require IEx
 
 defmodule Aggie.Elk do
+  use Benchfella
+
   @moduledoc """
   Aggie is the RPC log aggregator
   """
