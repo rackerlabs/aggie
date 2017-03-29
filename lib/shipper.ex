@@ -22,7 +22,9 @@ defmodule Aggie.Shipper do
     url         = "#{@central_elk}/#{index()}/log"
     headers     = [{"Content-Type", "application/json"}]
     {:ok, json} = Poison.encode(log)
-    HTTPoison.post(url, json, headers)
+    out = HTTPoison.post(url, json, headers)
+    IO.inspect out
+    out
   end
 
 end

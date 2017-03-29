@@ -47,7 +47,10 @@ defmodule Aggie.Elk.Action do
       request_id: get_value(@request_id_regex, string),
       image_name: get_value(@image_name_regex, string),
       image_id: get_value(@image_id_regex, string),
-      timestamp: get_value(@timestamp_regex, string) |> es_format()
+      timestamp: get_value(@timestamp_regex, string) |> es_format(),
+      tenant_id: "930035",
+      tags: "nova",
+      action: "created instance"
     }
 
     valid = action |> Enum.all?(fn({_, v}) -> v != "" end) 
