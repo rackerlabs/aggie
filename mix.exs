@@ -30,7 +30,7 @@ defmodule Aggie.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:apex, "~> 0.7.0"},
+      {:apex, "~> 0.7.0", only: [:dev, :test]},
       {:credo, "~> 0.5", only: [:dev, :test]},
       {:distillery, "~> 1.2.2"},
       {:ex_doc, "~> 0.13", only: :dev},
@@ -38,9 +38,7 @@ defmodule Aggie.Mixfile do
       {:benchfella, "~> 0.3.0"},
       {:poison, "~> 3.0"},
       {:timex, "~> 3.0"},
-      {:tzdata, "== 0.1.8", override: true},
-      {:uuid, "~> 1.1"},
-      {:yaml_elixir, "~> 1.3.0"}
+      {:tzdata, "== 0.1.8", override: true}
     ]
   end
 end
