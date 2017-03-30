@@ -17,9 +17,6 @@ defmodule Aggie.Elk do
   Forwards the latest valuable logs from local ELK to Central ELK
   """
   def ship_latest_logs! do
-    {:ok, _} = Application.ensure_all_started(:aggie)
-    HTTPoison.start
-    IO.puts "HERE!"
     Aggie.Shipper.ship!(latest_logs())
   end
 
@@ -42,7 +39,10 @@ defmodule Aggie.Elk do
 
 
   defp page(acc) do
-    case HTTPoison.request(:get, base_url(), page_request_body()) do
+    req = HTTPoison.request(:get, base_url(), page_request_body())
+
+    case req do
+      {:error, out} -> IO.inspect(out)
       {:ok, resp} ->
         {:ok, json} = Poison.decode(resp.body)
         raw_logs    = json["hits"]["hits"]
@@ -62,8 +62,8 @@ defmodule Aggie.Elk do
       query: %{
         bool: %{
           must_not: %{
-            term: %{
-              tags: "libvirt"
+            terms: %{
+              tags: ["libvirt", "apache"]
             }
           },
           must: %{
