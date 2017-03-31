@@ -1,3 +1,0 @@
-defmodule Aggie do
-
-end
