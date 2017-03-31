@@ -22,7 +22,15 @@ defmodule Aggie.Mixfile do
   # and cannot be accessed from applications inside the apps folder
   defp deps do
     [
-      {:distillery, "~> 1.0"}
+      {:apex, "~> 0.7.0", only: [:dev, :test]},
+      {:credo, "~> 0.5", only: [:dev, :test]},
+      {:distillery, "~> 1.2.2"},
+      {:ex_doc, "~> 0.13", only: :dev},
+      {:httpoison, "~> 0.10.0"},
+      {:benchfella, "~> 0.3.0"},
+      {:poison, "~> 3.0"},
+      {:timex, "~> 3.0"},
+      {:tzdata, "== 0.1.8", override: true}
     ]
   end
 end
