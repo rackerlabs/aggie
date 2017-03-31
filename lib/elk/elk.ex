@@ -17,6 +17,7 @@ defmodule Aggie.Elk do
   Forwards the latest valuable logs from local ELK to Central ELK
   """
   def ship_latest_logs! do
+    HTTPoison.start
     Aggie.Shipper.ship!(latest_logs())
   end
 
