@@ -1,6 +1,6 @@
 require IEx
 
-defmodule Aggie.Elk do
+defmodule Aggie do
 
   @moduledoc """
   Aggie is the RPC log aggregator
@@ -15,9 +15,9 @@ defmodule Aggie.Elk do
   @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
   """
-  def ship_latest_logs! do
+  def ship_logs(tenant_id) do
     HTTPoison.start
-    Aggie.Shipper.ship!(latest_logs())
+    Aggie.Shipper.ship!(tenant_id, latest_logs())
   end
 
   @doc """

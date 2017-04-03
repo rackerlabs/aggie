@@ -2,15 +2,24 @@ require IEx
 
 defmodule Aggie.Shipper do
 
+  # @central_elk "10.184.6.65:9200"
   @central_elk "104.130.18.115:9200"
 
   @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
   """
-  def ship!(logs) do
+  def ship!(tenant_id, logs) do
     Enum.each(logs, fn(l) ->
-      post!(l["_source"] |> update_timestamp)
+      data = l["_source"]
+        |> update_timestamp
+        |> store_tenant_id(tenant_id)
+
+      post!(data)
     end)
+  end
+
+  defp store_tenant_id(log, tenant_id) do
+    log |> Map.merge(%{"tenant_id": tenant_id})
   end
 
   defp update_timestamp(log) do
@@ -28,9 +37,6 @@ defmodule Aggie.Shipper do
   end
 
   defp es_format(string) do
-    # Have: Thu Mar 23 14:28:10.614263 2017
-    # Need: 2015/01/01 12:10:30
-
     try do
       {:ok, result} = Timex.parse(string, "%Y-%m-%d %H:%M:%S.%f", :strftime)
       {:ok, out} = Timex.format(result, "%Y/%m/%d %H:%M:%S", :strftime)
@@ -47,10 +53,6 @@ defmodule Aggie.Shipper do
   end
 
   defp post!(log) do
-
-    # TODO: Clean up how tenant_id handling
-
-    log         = log |> Map.merge(%{"tenant_id": "930035"})
     url         = "#{@central_elk}/#{index()}/log"
     headers     = [{"Content-Type", "application/json"}]
     {:ok, json} = Poison.encode(log)
