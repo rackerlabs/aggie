@@ -20,6 +20,9 @@ end
 
 release :aggie do
   set version: "0.1.0"
+  set commands: [
+    "ship": "rel/commands/ship.sh"
+  ]
   set applications: [
     elk: :permanent,
     judge: :permanent,
