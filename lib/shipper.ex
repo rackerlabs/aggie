@@ -12,14 +12,10 @@ defmodule Aggie.Shipper do
     Enum.each(logs, fn(l) ->
       data = l["_source"]
         |> update_timestamp
-        |> store_tenant_id(tenant_id)
+        |> Map.merge(%{"tenant_id": tenant_id})
 
       post!(data)
     end)
-  end
-
-  defp store_tenant_id(log, tenant_id) do
-    log |> Map.merge(%{"tenant_id": tenant_id})
   end
 
   defp update_timestamp(log) do
