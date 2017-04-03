@@ -6,7 +6,7 @@ defmodule Aggie do
   Aggie is the RPC log aggregator
   """
 
-  @ip "172.29.237.88:9200" # Darby
+  @ip "172.29.237.88:9200"
 
   @range "now-10m"
   @chunks 10000
@@ -42,7 +42,7 @@ defmodule Aggie do
     req = HTTPoison.request(:get, base_url(), page_request_body())
 
     case req do
-      {:error, out} -> IO.inspect(out)
+      {:error, out} -> IO.inspect(req)
       {:ok, resp} ->
         {:ok, json} = Poison.decode(resp.body)
         raw_logs    = json["hits"]["hits"]

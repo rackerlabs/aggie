@@ -2,8 +2,7 @@ require IEx
 
 defmodule Aggie.Shipper do
 
-  # @central_elk "10.184.6.65:9200"
-  @central_elk "104.130.18.115:9200"
+  @central_elk "10.208.200.40:9200"
 
   @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
@@ -53,7 +52,9 @@ defmodule Aggie.Shipper do
     headers     = [{"Content-Type", "application/json"}]
     {:ok, json} = Poison.encode(log)
 
-    case HTTPoison.post(url, json, headers) do
+    req = HTTPoison.post(url, json, headers)
+
+    case req do
       {:ok, _} -> IO.write '.'
       {:error, out} -> IO.inspect out
     end
