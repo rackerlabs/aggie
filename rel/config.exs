@@ -6,6 +6,12 @@ use Mix.Releases.Config,
     default_release: :default,
     default_environment: Mix.env()
 
+environment :default do
+  set commands: [
+    ship: "rel/commands/ship.sh"
+  ]
+end
+
 environment :dev do
   set dev_mode: true
   set include_erts: false
@@ -19,14 +25,5 @@ environment :prod do
 end
 
 release :aggie do
-  set version: "0.1.0"
-  set commands: [
-    "ship": "rel/commands/ship.sh"
-  ]
-  set applications: [
-    elk: :permanent,
-    judge: :permanent,
-    shipper: :permanent,
-    syslog: :permanent
-  ]
+  set version: current_version(:aggie)
 end

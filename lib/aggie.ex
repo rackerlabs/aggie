@@ -15,9 +15,11 @@ defmodule Aggie do
   @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
   """
-  def ship_logs() do
-    HTTPoison.start
-    Aggie.Shipper.ship!("930035", latest_logs())
+  def ship_logs(tenant_id) do
+    IO.inspect tenant_id
+
+    # HTTPoison.start
+    # Aggie.Shipper.ship!(tenant_id, latest_logs())
   end
 
   @doc """
