@@ -1,9 +1,20 @@
 # Aggie
 
+## Installation
 * `wget PATH/aggie.tar.gz`
 * `tar zxf aggie.tar.gz`
 * `mv bin/aggie /usr/local/bin`
 * `*/10 * * * * /usr/local/bin/aggie command Elixir.Aggie ship_logs 930035`
+
+## Development / Deployment
+Aggie is an [Elixir](http://elixir-lang.org/) application. It uses [Distillery](https://github.com/bitwalker/distillery) to cut releases via `MIX_ENV=prod mix release`. Aggie will be compiled into a tarball that can be deployed to the target host. It must be installed somewhere that access the in-cloud ELK container via internal IP, _and_ and be able to hit CentralElk's IP to push data.
+
+To deploy Aggie you can `scp` the tarball to the host:
+`scp aggie/_build/prod/rel/aggie/releases/0.1.0/aggie.tar.gz root@HOST:~/`
+
+After uploading the tarball to the host, simply unzip `tar zxf aggie.tar.gz` and then run Aggie: `~/bin/aggie command Elixir.Aggie ship_logs 930035`.
+
+Aggie is best run via a cron job: `*/10 * * * * /usr/local/bin/aggie command Elixir.Aggie ship_logs 930035`
 
 ## Setup CentralElk:
 ``` sh
