@@ -6,16 +6,11 @@ defmodule Aggie do
   Aggie is the RPC log aggregator
   """
 
-  @ip "172.29.237.88:9200"
-
-  @range "now-10m"
-  @chunks 10000
-  @timeout "1m"
-
   @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
   """
   def ship_logs() do
+    Aggie.Config.populate_app_config()
     HTTPoison.start
     Aggie.Shipper.ship!("930035", latest_logs())
   end
@@ -33,7 +28,12 @@ defmodule Aggie do
   def base_url do
     {:ok, date} = Timex.format(Timex.today, "%Y.%m.%d", :strftime)
     name = "logstash-#{date}"
-    "#{@ip}/#{name}/_search?scroll=#{@timeout}"
+
+    source_ip = Application.get_env(:aggie, :source_ip)
+    source_port = Application.get_env(:aggie, :source_port)
+    source_timeout = Application.get_env(:aggie, :source_timeout)
+
+    "#{source_ip}:#{source_port}/#{name}/_search?scroll=#{source_timeout}"
   end
 
 
@@ -56,26 +56,31 @@ defmodule Aggie do
   end
 
   defp page_request_body do
-    %{
-      size: @chunks,
-      sort: ["_doc"],
-      query: %{
-        bool: %{
-          must_not: %{
-            terms: %{
-              tags: ["libvirt", "apache"]
+
+    range = Application.get_env(:aggie, :source_range)
+    chunks = Application.get_env(:aggie, :source_chunks)
+
+    body = "{
+      size: \"#{chunks}\",
+      sort: [\"_doc\"],
+      query: {
+        bool: {
+          must_not: {
+            terms: {
+              tags: [\"libvirt\", \"apache\"]
             }
           },
-          must: %{
-            range: %{
-              "@timestamp": %{
-                gte: @range,
-                lte: "now/d"
+          must: {
+            range: {
+              \"@timestamp\": {
+                gte: \"#{range}\",
+                lte: \"now/d\"
               }
             }
           }
         }
       }
-    } |> Poison.encode!
+    }"
+    body
   end
 end
