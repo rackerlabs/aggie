@@ -6,33 +6,43 @@ defmodule Aggie.Config do
   Aggie.Config pulls env variables for app configuration during runtime.
   """
 
+  @required %{
+    tenant_id: "AGGIE_TENANT_ID",
+    source_ip: "AGGIE_SOURCE_IP",
+    source_port: "AGGIE_SOURCE_PORT",
+    source_timeout: "AGGIE_SOURCE_TIMEOUT",
+    source_range: "AGGIE_SOURCE_RANGE",
+    source_chunks: "AGGIE_SOURCE_CHUNKS",
+    destination_ip: "AGGIE_DESTINATION_IP",
+    destination_port: "AGGIE_DESTINATION_PORT"
+  }
+
   @doc """
   Goes through aggie environment variables and populates the application config
   """
-  def populate_app_config() do
+  defmacro populate_app_config do
+    Enum.each @required, fn(tuple) ->
+      var     = elem(tuple, 0)
+      env_var = elem(tuple, 1)
+      expr    = quote do
+        Application.put_env(:aggie, unquote(var), System.get_env(unquote(env_var)))
+      end
 
-    # Get env variables on runtime and activate
-    source_ip = System.get_env("AGGIE_SOURCE_IP")
-    Application.put_env(:aggie, :source_ip, source_ip)
+      Code.eval_quoted(expr)
+    end
 
-    source_port = System.get_env("AGGIE_SOURCE_PORT")
-    Application.put_env(:aggie, :source_port, source_port)
+    validate_env_vars_present?()
+  end
 
-    source_timeout = System.get_env("AGGIE_SOURCE_TIMEOUT")
-    Application.put_env(:aggie, :source_timeout, source_timeout)
+  defp validate_env_vars_present? do
+    Enum.all? @required, fn(tuple) ->
+      atom  = elem(tuple, 0)
+      value = Application.get_env(:aggie, atom)
 
-    source_range = System.get_env("AGGIE_SOURCE_RANGE")
-    Application.put_env(:aggie, :source_range, source_range)
-
-    source_chunks = System.get_env("AGGIE_SOURCE_CHUNKS")
-    Application.put_env(:aggie, :source_chunks, source_chunks)
-
-    destination_ip = System.get_env("AGGIE_DESTINATION_IP")
-    Application.put_env(:aggie, :destination_ip, destination_ip)
-
-    destination_port = System.get_env("AGGIE_DESTINATION_PORT")
-    Application.put_env(:aggie, :destination_port, destination_port)
-
+      unless value do
+        raise "Missing ENV['#{atom}']"
+      end
+    end
   end
 
 end
