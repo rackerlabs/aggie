@@ -20,7 +20,7 @@ defmodule Aggie.Config do
   @doc """
   Goes through aggie environment variables and populates the application config
   """
-  defmacro populate_app_config do
+  def populate_app_config do
     Enum.each @required, fn(tuple) ->
       var     = elem(tuple, 0)
       env_var = elem(tuple, 1)

@@ -16,6 +16,7 @@ defmodule Aggie do
     HTTPoison.start()
     Config.populate_app_config()
     Shipper.ship!(latest_logs())
+    System.halt(0)
   end
 
   @doc """
