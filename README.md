@@ -6,6 +6,22 @@
 * `mv bin/aggie /usr/local/bin`
 * `*/10 * * * * /usr/local/bin/aggie command Elixir.Aggie ship_logs 930035`
 
+## Configuration
+Ensure that the following environment variables are set:
+```sh
+# Sample values
+export AGGIE_TENANT_ID="930035"
+export AGGIE_SOURCE_IP="172.29.237.88"
+export AGGIE_SOURCE_PORT="9200"
+export AGGIE_SOURCE_TIMEOUT="1m"
+export AGGIE_SOURCE_RANGE="now-10m"
+export AGGIE_SOURCE_CHUNKS="10000"
+export AGGIE_DESTINATION_IP="10.208.200.40"
+export AGGIE_DESTINATION_PORT="9200"
+```
+
+
+
 ## Development
 Aggie is an [Elixir](http://elixir-lang.org/) application. Development normally needs to happen on an RPC AIO box as we must hit an internal IP for our data. To develop you must first install Erlang and Elixir:
 

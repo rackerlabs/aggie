@@ -2,12 +2,12 @@ require IEx
 
 defmodule Aggie.Shipper do
 
-  @central_elk "10.208.200.40:9200"
-
   @doc """
   Forwards the latest valuable logs from local ELK to Central ELK
   """
-  def ship!(tenant_id, logs) do
+  def ship!(logs) do
+    tenant_id = Application.get_env(:aggie, :tenant_id)
+
     Enum.each(logs, fn(l) ->
       data = l["_source"]
         |> update_timestamp
@@ -48,11 +48,12 @@ defmodule Aggie.Shipper do
   end
 
   defp post!(log) do
-    url         = "#{@central_elk}/#{index()}/log"
-    headers     = [{"Content-Type", "application/json"}]
-    {:ok, json} = Poison.encode(log)
-
-    req = HTTPoison.post(url, json, headers)
+    destination_ip   = Application.get_env(:aggie, :destination_ip)
+    destination_port = Application.get_env(:aggie, :destination_port)
+    url              = "#{destination_ip}:#{destination_port}/#{index()}/log"
+    headers          = [{"Content-Type", "application/json"}]
+    {:ok, json}      = Poison.encode(log)
+    req              = HTTPoison.post(url, json, headers)
 
     case req do
       {:ok, _} -> IO.write '.'
