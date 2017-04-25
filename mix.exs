@@ -18,7 +18,8 @@ defmodule Aggie.Mixfile do
     [
       {:distillery, "~> 1.2.2"},
       {:ex_doc, "~> 0.13", only: :dev},
-      {:httpoison, "~> 0.10.0"},
+      {:hackney, "~> 1.8.0"},
+      {:httpoison, "~> 0.11.2"},
       {:poison, "~> 3.0"},
       {:timex, "~> 3.0"},
       {:tzdata, "== 0.1.8", override: true}
